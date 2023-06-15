@@ -1,0 +1,43 @@
+pipeline {
+  agent('windows agent') {
+        label 'windowsagent'
+    }
+
+    
+  stages {
+      
+     
+    stage('Checkout') {
+      steps {
+        // Checkout the source code from GitHub
+        git branch: 'main', credentialsId: 'githubtoken', url: 'https://github.com/kriti135/windows.git '
+      }
+    }
+    
+    stage('Build') {
+        steps {
+            bat 'C:\\Users\\kritijain01\\AppData\\Local\\Programs\\Python\\Python311\\Scripts\\pip.exe install -r requirement.txt' // Install dependencies
+        }
+    }
+    stage('Run Python Script') {
+      steps {
+        // Execute the Python script
+       
+        // powershell 'python -m pytest hello.py --junitxml=pytest_report.xml' ||true
+        bat 'C:\\Users\\kritijain01\\AppData\\Local\\Programs\\Python\\Python311\\python.exe -m pytest hello.py --junitxml=pytest_report.xml'
+        
+      }
+    }
+    stage('Publish Test Results') {
+            steps {
+                // Archive the generated pytest report
+                archiveArtifacts artifacts: 'pytest_report.xml', allowEmptyArchive: true
+                
+                // Publish the JUnit test result report
+                
+                junit skipMarkingBuildUnstable: true, testResults: 'pytest_report.xml'
+            }
+        }
+  }
+}
+
